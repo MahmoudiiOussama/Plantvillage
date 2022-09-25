@@ -1,0 +1,8 @@
+model_config_list {
+  config {
+    name: 'pot_model'
+    base_path: '/PlantVillage/models'
+    model_platform: 'tensorflow'
+    model_version_policy: {all: {}}
+  }
+}

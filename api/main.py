@@ -4,7 +4,7 @@ import uvicorn
 from PIL import Image
 import numpy as np
 import tensorflow as tf
-
+import requests
 
 MODEL  = tf.keras.models.load_model("./models/2")
 
@@ -19,6 +19,9 @@ def read_file_as_image(data) -> np.ndarray:
     image = np.array(Image.open(BytesIO(data)))
     return image
 
+endpoint = "http://localhost:8601/v1/models/pot_model:predict"
+
+
 @app.post("/predict")
 
 async def predict(
@@ -26,10 +29,14 @@ async def predict(
 ):
     image = read_file_as_image(await file.read())
     img_batch = np.expand_dims(image,0)
+    json_data = {
+        "instances": img_batch.tolist()
+    }
+    response = requests.post(endpoint, json=json_data)
+    prediction = np.array(response.json()["predictions"][0])
+    predicted_class = CLASS_NAMES[np.argmax(prediction)]
+    confidence = np.max(prediction)
     
-    prediction = MODEL.predict(img_batch)
-    predicted_class = CLASS_NAMES[np.argmax(prediction[0])]
-    confidence = np.max(prediction[0])
     return {
         
         'class': predicted_class,
